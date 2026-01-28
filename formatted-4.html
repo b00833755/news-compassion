@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Editors of Compassion | Newsroom Sim</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <style>
+         .news-card.selected { border: 3px solid #2563eb; background-color: #f0f7ff; transform: scale(1.02); }
+         .details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); }
+         .details-content.open { max-height: 1000px; padding-bottom: 1rem; }
+         .region-tag { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+         /* Region Colors */
+         .reg-latin { background-color: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+         .reg-middle-east { background-color: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+         .reg-europe-na { background-color: #e0f2fe; color: #075985; border-left: 4px solid #0ea5e9; }
+         .reg-africa { background-color: #dcfce7; color: #166534; border-left: 4px solid #22c55e; }
+         .reg-oceania { background-color: #f3e8ff; color: #6b21a8; border-left: 4px solid #a855f7; }
+         .reg-global { background-color: #f1f5f9; color: #475569; border-left: 4px solid #94a3b8; }
+      </style>
+   </head>
+   <body class="bg-slate-100 font-sans text-slate-900">
+      <header class="bg-slate-900 text-white p-4 shadow-xl sticky top-0 z-50">
+         <div class="container mx-auto flex justify-between items-center">
+            <div>
+               <h1 class="text-xl font-black tracking-widest">EDITORS OF COMPASSION</h1>
+               <p class="text-[10px] text-slate-400 uppercase tracking-tight">Global Newsroom Simulation</p>
+            </div>
+            <div id="timer" class="bg-red-600 px-6 py-2 rounded-lg font-mono font-bold text-xl shadow-inner">05:00</div>
+         </div>
+      </header>
+      <main class="container mx-auto p-6 flex flex-col lg:flex-row gap-8">
+         <aside class="lg:w-1/4 space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+               <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Newsroom Identity</h2>
+               <select id="countrySelect" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold" onchange="loadCountry()">
+                  <option value="us">United States</option>
+                  <option value="brazil">Brazil</option>
+                  <option value="japan">Japan</option>
+                  <option value="senegal">Senegal</option>
+                  <option value="australia">Australia</option>
+               </select>
+               <div id="countryInfo" class="mt-4"></div>
+            </div>
+            <div class="bg-slate-800 text-white p-5 rounded-2xl shadow-lg">
+               <h3 class="text-[10px] font-black text-slate-400 uppercase mb-3">Editorial Bias Modifiers</h3>
+               <div id="dnaList" class="space-y-4 text-xs"></div>
+            </div>
+         </aside>
+         <section class="lg:w-2/4">
+            <div class="flex justify-between items-end mb-6">
+               <h2 class="text-2xl font-black text-slate-800">The Wire</h2>
+               <span class="text-xs font-bold text-slate-400">12 CARDS AVAILABLE</span>
+            </div>
+            <div id="newsPool" class="space-y-3">
+            </div>
+         </section>
+         <aside class="lg:w-1/4">
+            <div class="bg-white p-6 rounded-3xl shadow-2xl border-2 border-slate-200 sticky top-28">
+               <h2 class="text-center font-black text-slate-900 border-b pb-4 mb-6 tracking-tighter">TODAY'S FRONT PAGE</h2>
+               <div id="slots" class="space-y-3">
+                  <div class="slot group bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 min-h-[120px] transition-all" data-type="top">
+                     <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-blue-600 uppercase">Top Story</span>
+                        <button onclick="clearSlots()" class="hidden group-hover:block text-[10px] text-red-500">Clear</button>
+                     </div>
+                     <div class="slot-text text-sm font-bold text-slate-400 italic">Drag to assign or click 'Assign'</div>
+                  </div>
+                  <div class="slot bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 min-h-[70px]" data-type="sec">
+                     <span class="text-[10px] font-black text-slate-400 uppercase">Headline 2</span>
+                     <div class="slot-text text-xs font-bold text-slate-400 mt-1">---</div>
+                  </div>
+                  <div class="slot bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 min-h-[70px]" data-type="sec">
+                     <span class="text-[10px] font-black text-slate-400 uppercase">Headline 3</span>
+                     <div class="slot-text text-xs font-bold text-slate-400 mt-1">---</div>
+                  </div>
+               </div>
+               <div class="mt-8 space-y-4">
+                  <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                     <label class="text-[10px] font-black text-slate-500 uppercase">Edition Tone</label>
+                     <select id="tone" class="w-full bg-transparent text-sm font-bold outline-none mt-1">
+                        <option value="neutral">Factual & Neutral</option>
+                        <option value="emotional">Urgent & Emotional</option>
+                        <option value="skeptical">Analytical & Skeptical</option>
+                     </select>
+                  </div>
+                  <button onclick="publish()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg transition-transform active:scale-95">
+                  PUBLISH EDITION
+                  </button>
+               </div>
+            </div>
+         </aside>
+      </main>
+      <div id="resultsModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-sm flex items-center justify-center hidden z-[100] p-4">
+         <div class="bg-white max-w-2xl w-full p-10 rounded-[3rem] shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="text-center mb-8">
+               <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Edition Analytics</h2>
+               <p id="analysisSubtitle" class="text-blue-600 font-bold uppercase text-xs mt-2"></p>
+            </div>
+            <div id="meterContainer" class="space-y-8"></div>
+            <div class="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-600 text-sm">
+               <p id="reflectionText"></p>
+            </div>
+            <button onclick="location.reload()" class="mt-8 w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-colors">START NEW ROUND</button>
+         </div>
+      </div>
+      <script>
+         const newsItems = [
+             { id: 1, title: "Chile Wildfires & Evacuations", region: "Latin America", regClass: "reg-latin", load: "High", action: "Donate/Aid", controversy: 1, type: "Sudden", victims: "Named Families", formats: ["Story", "Stats"], summary: "Southern Chile battles deadly wildfires, forcing emergency evacuations and destruction of homes; state of catastrophe declared." },
+             { id: 2, title: "UN Iran Protest Emergency", region: "Middle East", regClass: "reg-middle-east", load: "High", action: "Advocacy", controversy: 8, type: "Chronic", victims: "Large Groups", formats: ["Policy", "Story"], summary: "UN Human Rights Council calls emergency session over ongoing protests and thousands of reported deaths." },
+             { id: 3, title: "Davos Greenland Dispute", region: "Europe/NA", regClass: "reg-europe-na", load: "Low", action: "Policy", controversy: 6, type: "Sudden", victims: "Officials", formats: ["Stats", "Policy"], summary: "Tensions over U.S. policy toward Greenland draw strong rebukes from European leaders at Davos." },
+             { id: 4, title: "France Urges NATO Exercise", region: "Europe/NA", regClass: "reg-europe-na", load: "Med", action: "Policy", controversy: 5, type: "Sudden", victims: "Military Groups", formats: ["Policy"], summary: "France formally requests NATO military exercises in Greenland amid geopolitical friction." },
+             { id: 5, title: "Davos Market Recovery", region: "Global", regClass: "reg-global", load: "Low", action: "Investment", controversy: 2, type: "Sudden", victims: "Large Groups", formats: ["Stats"], summary: "Global markets rally on optimism after U.S. retreat from hard tariff threats." },
+             { id: 6, title: "G7 Finance Postponed", region: "Europe/NA", regClass: "reg-europe-na", load: "Low", action: "None", controversy: 3, type: "Sudden", victims: "Officials", formats: ["Policy"], summary: "France postpones G7 meeting due to scheduling conflicts, signaling coordination challenges." },
+             { id: 7, title: "Ugandan Election Violence", region: "Africa", regClass: "reg-africa", load: "High", action: "Advocacy", controversy: 7, type: "Sudden", victims: "Large Groups", formats: ["Story", "Policy"], summary: "Protests over Uganda's 2026 election lead to clashes and reported deaths; demonstrators call for change." },
+             { id: 8, title: "Iran State TV Hijacked", region: "Middle East", regClass: "reg-middle-east", load: "Med", action: "Advocacy", controversy: 9, type: "Sudden", victims: "Named Individuals", formats: ["Story"], summary: "Iranian state broadcasts hijacked, airing protest messages and calls for military to stand down." },
+             { id: 9, title: "Spain Train Collision", region: "Europe/NA", regClass: "reg-europe-na", load: "High", action: "Aid/Support", controversy: 1, type: "Sudden", victims: "Named Individuals", formats: ["Story", "Stats"], summary: "At least 39 people killed and hundreds injured after twin train derailments in Spain." },
+             { id: 10, title: "Tunisia Flooding Disaster", region: "Africa", regClass: "reg-africa", load: "High", action: "Donate", controversy: 2, type: "Sudden", victims: "Named Families", formats: ["Story", "Stats"], summary: "Severe flooding in Tunisia causes deaths and marking one of the region's worst floods in decades." },
+             { id: 11, title: "Russia-Ukraine War Peace Signals", region: "Global", regClass: "reg-global", load: "High", action: "Policy/Aid", controversy: 9, type: "Chronic", victims: "Large Groups", formats: ["Stats", "Policy"], summary: "Peace negotiations show mixed signals while fighting continues; combat unfolds simultaneously." },
+             { id: 12, title: "Bondi Beach Shooting Mourning", region: "Oceania", regClass: "reg-oceania", load: "High", action: "Memorial", controversy: 2, type: "Sudden", victims: "Named Individuals", formats: ["Story"], summary: "Australia observes national day of mourning following mass shooting at Bondi Beach." }
+         ];
+         
+         const countries = {
+             us: { name: "United States", focus: "Attention Economy", weights: { human: 1.3, stats: 0.6, action: 0.8 }, dna: ["Identifiable Victim Priority", "Rapid Attention Decay", "Domestic Bias: High"] },
+             brazil: { name: "Brazil", focus: "Social Inequality Lens", weights: { human: 1.1, stats: 0.8, action: 1.1 }, dna: ["Relatability Trigger", "Injustice Sensitivity", "Regional Priority: South America"] },
+             japan: { name: "Japan", focus: "Social Harmony", weights: { human: 0.4, stats: 1.5, action: 0.6 }, dna: ["Fact-Based Trust", "Institutional Bias", "Domestic Priority: High"] },
+             senegal: { name: "Senegal", focus: "Community Solidarity", weights: { human: 1.0, stats: 0.4, action: 1.5 }, dna: ["Shared Vulnerability", "Skepticism of Elites", "Regional Priority: Africa"] },
+             australia: { name: "Australia", focus: "Pragmatic Concern", weights: { human: 0.7, stats: 1.2, action: 1.0 }, dna: ["Risk Awareness", "Solution Oriented", "Regional Priority: Asia-Pacific"] }
+         };
+         
+         let selectedTop = null;
+         let selectedSec = [];
+         
+         function init() {
+             renderPool();
+             loadCountry();
+             startTimer();
+         }
+         
+         function renderPool() {
+             const pool = document.getElementById('newsPool');
+             pool.innerHTML = newsItems.map(item => `
+                 <div id="card-${item.id}" class="news-card bg-white rounded-2xl shadow-sm border border-slate-200 transition-all cursor-pointer ${item.regClass}">
+                     <div class="p-4 flex items-center justify-between" onclick="toggleCard(${item.id})">
+                         <div class="flex items-center gap-3">
+                             <span class="region-tag">${item.region}</span>
+                             <h3 class="font-black text-slate-800 text-sm">${item.title}</h3>
+                         </div>
+                         <button onclick="event.stopPropagation(); assign(${item.id})" class="text-[10px] bg-slate-900 text-white px-3 py-1.5 rounded-lg font-black hover:bg-blue-600">ASSIGN</button>
+                     </div>
+                     <div id="details-${item.id}" class="details-content px-4">
+                         <div class="grid grid-cols-4 gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-tighter mb-4">
+                             <div class="bg-slate-100 p-2 rounded">Load: <span class="text-slate-900">${item.load}</span></div>
+                             <div class="bg-slate-100 p-2 rounded">Action: <span class="text-slate-900">${item.action}</span></div>
+                             <div class="bg-slate-100 p-2 rounded">Controversy: <span class="text-slate-900">${item.controversy}/10</span></div>
+                             <div class="bg-slate-100 p-2 rounded">Victim: <span class="text-slate-900">${item.victims}</span></div>
+                         </div>
+                         <p class="text-xs text-slate-600 leading-relaxed">${item.summary}</p>
+                         <div class="flex gap-2 mt-3">
+                             ${item.formats.map(f => `<span class="text-[9px] bg-white border border-slate-200 px-2 py-0.5 rounded italic">Available: ${f}</span>`).join('')}
+                         </div>
+                     </div>
+                 </div>
+             `).join('');
+         }
+         
+         function toggleCard(id) {
+             document.getElementById(`details-${id}`).classList.toggle('open');
+         }
+         
+         function assign(id) {
+             const item = newsItems.find(n => n.id === id);
+             if (!selectedTop) {
+                 selectedTop = item;
+             } else if (selectedSec.length < 2 && !selectedSec.includes(item) && selectedTop.id !== id) {
+                 selectedSec.push(item);
+             }
+             updateSlots();
+         }
+         
+         function updateSlots() {
+             const slots = document.querySelectorAll('.slot');
+             slots[0].querySelector('.slot-text').innerHTML = selectedTop ? `<span class="text-slate-900">${selectedTop.title}</span>` : "Empty Slot";
+             slots[1].querySelector('.slot-text').innerHTML = selectedSec[0] ? `<span class="text-slate-900">${selectedSec[0].title}</span>` : "---";
+             slots[2].querySelector('.slot-text').innerHTML = selectedSec[1] ? `<span class="text-slate-900">${selectedSec[1].title}</span>` : "---";
+         }
+         
+         function loadCountry() {
+             const c = countries[document.getElementById('countrySelect').value];
+             document.getElementById('countryInfo').innerHTML = `
+                 <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                     <p class="text-[10px] font-black text-blue-400 uppercase">Logic</p>
+                     <p class="font-black text-blue-900">${c.focus}</p>
+                 </div>`;
+             document.getElementById('dnaList').innerHTML = c.dna.map(d => `<div class="flex items-center gap-2"><div class="w-1 h-1 bg-blue-400 rounded-full"></div>${d}</div>`).join('');
+         }
+         
+         function publish() {
+             if (!selectedTop) return alert("Select your Top Story first!");
+             const c = countries[document.getElementById('countrySelect').value];
+             const tone = document.getElementById('tone').value;
+         
+             // Algorithm for Reveal
+             let intensity = 50;
+             let trust = 80;
+             let equity = 30;
+         
+             if(selectedTop.load === "High") intensity += 20 * c.weights.human;
+             if(selectedTop.controversy > 6) trust -= 25;
+             if(tone === "emotional") { intensity += 15; trust -= 10; }
+             
+             const regionsCount = new Set([selectedTop.region, ...selectedSec.map(s => s.region)]).size;
+             equity = regionsCount * 25;
+         
+             showResults({
+                 "Compassion Intensity": Math.min(intensity, 100),
+                 "Audience Trust": Math.min(trust, 100),
+                 "Compassion Equity": Math.min(equity, 100)
+             });
+         }
+         
+         function showResults(scores) {
+             const modal = document.getElementById('resultsModal');
+             document.getElementById('analysisSubtitle').innerText = countries[document.getElementById('countrySelect').value].name + " Editorial Audit";
+             modal.classList.remove('hidden');
+         
+             document.getElementById('meterContainer').innerHTML = Object.entries(scores).map(([k, v]) => `
+                 <div>
+                     <div class="flex justify-between font-black text-slate-800 text-sm mb-3"><span>${k}</span><span>${Math.round(v)}%</span></div>
+                     <div class="w-full bg-slate-100 h-4 rounded-full p-1 border shadow-inner">
+                         <div class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: ${v}%"></div>
+                     </div>
+                 </div>
+             `).join('');
+         
+             document.getElementById('reflectionText').innerText = `Your edition covered ${new Set([selectedTop.region, ...selectedSec.map(s => s.region)]).size} global regions. Your top story on ${selectedTop.region} drove the narrative. Did you choose what was important, or what was loudest?`;
+         }
+         
+         function startTimer() {
+             let t = 300;
+             setInterval(() => {
+                 if (t <= 0) return;
+                 t--;
+                 let m = Math.floor(t / 60);
+                 let s = t % 60;
+                 document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+             }, 1000);
+         }
+         
+         function clearSlots() { selectedTop = null; selectedSec = []; updateSlots(); }
+         
+         window.onload = init;
+      </script>
+   </body>
+</html>
